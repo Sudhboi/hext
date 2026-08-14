@@ -6,6 +6,11 @@ import Draw (genPicture)
 import Events
 import Graphics.Vty (Vty (nextEvent, shutdown), update)
 
+initLoop :: App -> IO ()
+initLoop app = do
+  update (app ^. term) (genPicture app)
+  return ()
+
 loopApp :: App -> IO ()
 loopApp app = do
   e <- nextEvent (app ^. term)

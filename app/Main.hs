@@ -1,10 +1,11 @@
 module Main (main) where
 
 import App
-import Loop (loopApp)
+import Loop (initLoop, loopApp)
 
 main :: IO ()
 main = do
   app <- genApp ""
+  initLoop app
   loopApp app
   return ()
