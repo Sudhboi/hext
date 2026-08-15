@@ -6,13 +6,13 @@ import Control.Lens (makeLenses, (^.))
 import GHC.IO.Handle (hGetContents')
 import GHC.IO.Handle.FD (withFile)
 import GHC.IO.IOMode (IOMode (ReadMode))
-import Graphics.Vty (DisplayRegion, Output (displayBounds), Vty (outputIface), defaultConfig)
+import Graphics.Vty (DisplayRegion, Output (displayBounds), Vty (outputIface), defaultConfig, regionHeight)
 import Graphics.Vty.CrossPlatform (mkVty)
 import System.Directory (doesFileExist)
 
 data Status = Looping | Done deriving (Show)
 
-data VCursor = VCursor {_line :: Int, _pos :: Int} deriving (Show)
+data VCursor = VCursor {_pos :: Int, _line :: Int} deriving (Show)
 
 data App = App
   { _status :: Status
@@ -21,11 +21,21 @@ data App = App
   , _term :: Vty
   , _fileName :: String
   , _bounds :: DisplayRegion
+  , _currentStart :: Int
   }
 
 instance Show App where
   -- show :: App -> String
-  show app = unlines $ [show . _status, show . _editortext, show . _cursor, show . _fileName, show . _bounds] <*> [app]
+  show app =
+    unlines $
+      [ show . _status
+      , show . _editortext
+      , show . _cursor
+      , show . _fileName
+      , show . _bounds
+      , show . _currentStart
+      ]
+        <*> [app]
 
 $(makeLenses ''VCursor)
 $(makeLenses ''App)
@@ -38,8 +48,17 @@ genApp file = do
     False -> return "hi hello \nbruh"
   vty <- mkVty defaultConfig
   bnds <- displayBounds $ outputIface vty
-  return (App Looping (lines contents) (VCursor 0 0) vty file bnds)
+  return
+    ( App
+        Looping
+        (lines contents)
+        (VCursor 0 0)
+        vty
+        file
+        bnds
+        0
+    )
 
 getText :: App -> [String]
 -- getText app = concat $ app ^. editortext
-getText = _editortext
+getText app = take (regionHeight (app ^. bounds) - 2) (drop (app ^. currentStart) (app ^. editortext ++ repeat ""))
