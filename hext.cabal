@@ -72,6 +72,7 @@ library
                     , lens
                     , vty
                     , vty-crossplatform
+                    , directory
 
     -- Directories containing source files.
     hs-source-dirs:   src

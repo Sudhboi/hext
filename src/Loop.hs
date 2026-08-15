@@ -18,4 +18,6 @@ loopApp app = do
   update (app ^. term) (genPicture newApp)
   case newApp ^. status of
     Looping -> loopApp newApp
-    Done -> shutdown (newApp ^. term)
+    Done -> do
+      shutdown (newApp ^. term)
+      print newApp

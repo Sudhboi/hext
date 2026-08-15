@@ -11,6 +11,7 @@ import Graphics.Vty (
   defAttr,
   regionWidth,
   string,
+  vertCat,
   withBackColor,
   (<->),
  )
@@ -29,7 +30,7 @@ genTopBar app = genBar toDisplay app
   toDisplay = "hext v0.0.1    " ++ (if app ^. fileName == "" then "UNSAVED" else "(" ++ app ^. fileName ++ ")")
 
 genEditorImage :: App -> Image
-genEditorImage = string defAttr . getText
+genEditorImage app = vertCat $ map (string defAttr) (getText app)
 
 genLayer :: App -> Image
 genLayer app = genTopBar app <-> genEditorImage app
