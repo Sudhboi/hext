@@ -25,7 +25,6 @@ data App = App
   }
 
 instance Show App where
-  -- show :: App -> String
   show app =
     unlines $
       ( [ show . _status
