@@ -1,6 +1,6 @@
 module Events where
 
-import App (App, Status (Done), bounds, currentLine, currentStart, cursor, editortext, line, pos, resetCPos, status, textLine)
+import App (App, Status (Done, Saving), bounds, currentLine, currentStart, cursor, editortext, line, pos, resetCPos, status, textLine)
 import Control.Lens (over, (^.))
 import Graphics.Vty (regionHeight)
 import Graphics.Vty.Input.Events (
@@ -14,6 +14,7 @@ handleEvent :: Event -> App -> App
 handleEvent e =
   case e of
     (EvKey (KChar 'c') [MCtrl]) -> quitApp
+    (EvKey (KChar 's') [MCtrl]) -> saveApp
     (EvResize w h) -> resizeApp w h
     (EvKey KUp []) -> moveCursorUp
     (EvKey KDown []) -> moveCursorDown
@@ -26,6 +27,9 @@ handleEvent e =
 
 quitApp :: App -> App
 quitApp = over status (const Done)
+
+saveApp :: App -> App
+saveApp = over status (const Saving)
 
 resizeApp :: Int -> Int -> App -> App
 resizeApp w h = over bounds (const (w, h))

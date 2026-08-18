@@ -1,6 +1,6 @@
 module Loop where
 
-import App (App, Status (Done, Looping), status, term)
+import App (App, Status (Done, Looping, Saving), saveFile, status, term)
 import Control.Lens
 import Draw (genPicture)
 import Events
@@ -18,6 +18,9 @@ loopApp app = do
   update (app ^. term) (genPicture newApp)
   case newApp ^. status of
     Looping -> loopApp newApp
+    Saving -> do
+      newnewApp <- saveFile newApp
+      loopApp newnewApp
     Done -> do
       shutdown (newApp ^. term)
       print newApp

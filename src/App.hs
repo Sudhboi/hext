@@ -10,7 +10,7 @@ import Graphics.Vty (DisplayRegion, Output (displayBounds), Vty (outputIface), d
 import Graphics.Vty.CrossPlatform (mkVty)
 import System.Directory (doesFileExist)
 
-data Status = Looping | Done deriving (Show)
+data Status = Looping | Done | Saving deriving (Show)
 
 data VCursor = VCursor {_pos :: Int, _line :: Int, _cHPos :: Int} deriving (Show)
 
@@ -71,3 +71,9 @@ currentLine app = (app ^. editortext) !! textLine app
 
 resetCPos :: App -> App
 resetCPos app = if (app ^. cursor . pos) <= length (currentLine app) then app else over (cursor . pos) (const $ length $ currentLine app) app
+
+saveFile :: App -> IO App
+saveFile app = do
+  writeFile (app ^. fileName) (unlines $ app ^. editortext)
+  let newApp = over status (const Looping) app
+  return newApp
