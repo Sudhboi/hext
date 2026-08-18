@@ -1,6 +1,6 @@
 module Draw where
 
-import App (App, bounds, currentStart, cursor, fileName, getText, line, pos)
+import App (App, bounds, currentLine, currentStart, cursor, fileName, getText, line, pos)
 import Control.Lens
 import Graphics.Vty (
   Background (ClearBackground),
@@ -31,9 +31,12 @@ genTopBar app = genBar toDisplay app
   toDisplay = "hext v0.0.1    " ++ (if app ^. fileName == "" then "UNSAVED" else "(" ++ app ^. fileName ++ ")")
 
 genBotBar :: App -> Image
-genBotBar app = genBar ("^C Quit        ^S Save" ++ fill (regionWidth (app ^. bounds) `div` 3) ++ cursorPos) app
+genBotBar app = string (defAttr `withBackColor` blue) (fill 2 ++ info ++ fill rest ++ cursorPos ++ fill 2)
  where
+  info = "^C Quit        ^S Save"
   cursorPos = "(" ++ show (app ^. cursor . pos) ++ "," ++ show ((app ^. cursor . line) + (app ^. currentStart)) ++ ")"
+  width = regionWidth $ app ^. bounds
+  rest = width - (length info + length cursorPos + 4)
 
 genEditorImage :: App -> Image
 genEditorImage app = vertCat $ map (string defAttr) (getText app)
@@ -42,4 +45,9 @@ genLayer :: App -> Image
 genLayer app = vertCat $ [genTopBar, genEditorImage, genBotBar] <*> [app]
 
 genPicture :: App -> Picture
-genPicture app = Picture (Cursor 0 (1 + app ^. cursor . line)) [genLayer app] ClearBackground
+genPicture app = Picture (renderCursor app) [genLayer app] ClearBackground
+
+renderCursor :: App -> Cursor
+renderCursor app = Cursor (min p (length $ currentLine app)) (1 + app ^. cursor . line)
+ where
+  p = app ^. cursor . pos
