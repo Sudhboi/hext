@@ -5,10 +5,10 @@ import Control.Lens (over, (^.))
 import Graphics.Vty (regionHeight)
 import Graphics.Vty.Input.Events (
   Event (EvKey, EvResize),
-  Key (KChar, KDown, KLeft, KRight, KUp),
+  Key (KChar, KDown, KEnter, KLeft, KRight, KUp),
   Modifier (MCtrl),
  )
-import List (insertAt, replaceAt)
+import List (insertAt, replaceAt, splitAndFlatten)
 
 handleEvent :: Event -> App -> App
 handleEvent e =
@@ -20,6 +20,7 @@ handleEvent e =
     (EvKey KRight []) -> resetCPos . moveCursorRight
     (EvKey KLeft []) -> moveCursorLeft . resetCPos
     (EvKey (KChar ch) []) -> moveCursorRight . insertChar ch . resetCPos
+    (EvKey KEnter []) -> over (cursor . pos) (const 0) . moveCursorDown . insertEnter
     _ -> id
 
 quitApp :: App -> App
@@ -53,3 +54,6 @@ insertChar :: Char -> App -> App
 insertChar ch app = over editortext (const $ replaceAt (textLine app) newStr (app ^. editortext)) app
  where
   newStr = insertAt (app ^. cursor . pos) ch (currentLine app)
+
+insertEnter :: App -> App
+insertEnter app = over editortext (const $ splitAndFlatten (textLine app) (app ^. cursor . pos) (app ^. editortext)) app

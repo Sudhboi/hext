@@ -70,4 +70,4 @@ currentLine :: App -> String
 currentLine app = (app ^. editortext) !! textLine app
 
 resetCPos :: App -> App
-resetCPos app = if (app ^. cursor . pos) <= (length $ currentLine app) then app else over (cursor . pos) (const $ length $ currentLine app) app
+resetCPos app = if (app ^. cursor . pos) <= length (currentLine app) then app else over (cursor . pos) (const $ length $ currentLine app) app
