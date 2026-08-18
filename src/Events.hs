@@ -5,10 +5,10 @@ import Control.Lens (over, (^.))
 import Graphics.Vty (regionHeight)
 import Graphics.Vty.Input.Events (
   Event (EvKey, EvResize),
-  Key (KChar, KDown, KEnter, KLeft, KRight, KUp),
+  Key (KBS, KChar, KDown, KEnter, KLeft, KRight, KUp),
   Modifier (MCtrl),
  )
-import List (insertAt, replaceAt, splitAndFlatten)
+import List (insertAt, mergeAndFlatten, removeAt, replaceAt, splitAndFlatten)
 
 handleEvent :: Event -> App -> App
 handleEvent e =
@@ -21,6 +21,7 @@ handleEvent e =
     (EvKey KLeft []) -> moveCursorLeft . resetCPos
     (EvKey (KChar ch) []) -> moveCursorRight . insertChar ch . resetCPos
     (EvKey KEnter []) -> over (cursor . pos) (const 0) . moveCursorDown . insertEnter
+    (EvKey KBS []) -> backSpace . resetCPos
     _ -> id
 
 quitApp :: App -> App
@@ -57,3 +58,20 @@ insertChar ch app = over editortext (const $ replaceAt (textLine app) newStr (ap
 
 insertEnter :: App -> App
 insertEnter app = over editortext (const $ splitAndFlatten (textLine app) (app ^. cursor . pos) (app ^. editortext)) app
+
+backSpace :: App -> App
+backSpace app
+  | (app ^. cursor . pos) == 0 && textLine app == 0 = app
+  | (app ^. cursor . pos) == 0 = (moveCursorUp . lineBackSpace) app
+  | otherwise = (moveCursorLeft . normalBackSpace) app
+
+normalBackSpace :: App -> App
+normalBackSpace app = over editortext (const $ replaceAt (textLine app) newText (app ^. editortext)) app
+ where
+  newText = removeAt (app ^. cursor . pos) oldText
+  oldText = currentLine app
+
+lineBackSpace :: App -> App
+lineBackSpace app = (over (cursor . pos) (const oldTextLength) . over editortext (const $ mergeAndFlatten (textLine app) (app ^. editortext))) app
+ where
+  oldTextLength = length $ (app ^. editortext) !! (textLine app - 1)
